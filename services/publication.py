@@ -35,7 +35,8 @@ async def get_publicaciones_by_user(user: _user.User, db: _orm.Session):
             "id": publicacion.Publicacionid,
             "titulo": publicacion.titulo,
             "contenido": publicacion.contenido,
-            "archivo": base64.b64encode(archivo.snippet).decode("utf-8")
+            "archivo": archivo.snippet.decode("utf-8"),
+            "archivo_base64": base64.b64encode(archivo.snippet).decode("utf-8")
         })
     return resultado
 
