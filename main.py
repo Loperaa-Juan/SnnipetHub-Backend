@@ -16,6 +16,8 @@ import services.snippet as _snippetServices
 import services.publication as _publicationServices
 import services.comments as _commentsServices
 
+import services.informe as _informeServices
+
 app = FastAPI()
 
 
@@ -194,3 +196,8 @@ def delete_comment(
     db: _orm.Session = Depends(_databaseServices.get_db)
 ):
     return _commentsServices.delete_comment(ComentarioId=ComentarioId, user=user, db=db)
+
+@app.get("/admin/informe")
+def obtener_informe(user: _user.User = Depends(_userServices.get_current_user), db: _orm.Session = Depends(_databaseServices.get_db)):
+    informe = _informeServices.generar_informe(user=user, db=db)
+    return informe
