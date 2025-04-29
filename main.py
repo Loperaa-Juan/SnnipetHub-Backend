@@ -69,7 +69,7 @@ async def create_user(
     return user
 
 # CRUD ENDPOINTS - Snippets
-@app.post("/snippets", tags=["snippets"])
+@app.post("/create/snippets", tags=["snippets"])
 def create_snippet(
     Titulo: str,
     Lenguaje: str,
