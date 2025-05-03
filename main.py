@@ -71,8 +71,8 @@ async def create_user(
 # CRUD ENDPOINTS - Snippets
 @app.post("/create/snippets", tags=["snippets"])
 def create_snippet(
-    Titulo: str,
-    Lenguaje: str,
+    Titulo: str = Form(...),
+    Lenguaje: str = Form(...),
     user: _user.User = Depends(_userServices.get_current_user),
     file: UploadFile = File(...), 
     db: _orm.Session = Depends(_databaseServices.get_db)
