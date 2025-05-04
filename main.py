@@ -9,6 +9,7 @@ from datetime import timedelta
 
 import schemas.user as _user
 import schemas.Snippet as _snippet
+import schemas.Comentario as _comentario
 
 import services.user as _userServices
 import services.database as _databaseServices
@@ -130,6 +131,14 @@ async def get_publicacion_by_id(
 ):
     return await _publicationServices.get_publicacion_by_id(publicacion_id, db)
 
+@app.get("/publications/user/{username}", tags=["publicaciones"])
+async def get_publicaciones(
+    username: str,
+    db: _orm.Session = Depends(_databaseServices.get_db),
+    user: _user.User = Depends(_userServices.get_current_user),
+):
+    return await _publicationServices.get_publication_by_user(username=username, db=db, user=user)
+
 @app.put("/publicaciones/{publicacion_id}", tags=["publicaciones"])
 async def update_publicacion(
     publicacion_id: str,
@@ -150,14 +159,13 @@ async def delete_publicacion(
     return await _publicationServices.delete_publicacion(Publicacionid=publicacion_id, user=user, db=db)
 
 # CRUD ENDPOINTS - Comentarios
-@app.post("/comentarios", tags=["comments"])
+@app.post("/create/comentarios", tags=["comments"])
 async def create_comment(
-    Publicacionid: str,
-    Contenido: str,
+    comentario: _comentario.ComentarioCreate,
     user: _user.User = Depends(_userServices.get_current_user),
     db: _orm.Session = Depends(_databaseServices.get_db)
 ):
-    return await _commentsServices.create_comment(Publicacionid=Publicacionid, comment=Contenido, user=user, db=db)
+    return await _commentsServices.create_comment(Publicacionid=comentario.Publicacionid, comment=comentario.contenido, user=user, db=db)
 
 @app.get("/comentarios/user/me", tags=["comments"])
 async def get_comments_me(

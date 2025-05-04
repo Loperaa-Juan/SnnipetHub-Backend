@@ -92,3 +92,24 @@ async def delete_publicacion(Publicacionid: str, user: _user.User, db: _orm.Sess
     db.commit()
 
     return {"detail": "Publication deleted"}
+
+async def get_publication_by_user(user: _user.User, username: str, db: _orm.Session):
+    user = db.query(_models.User).filter(_models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    publicaciones = db.query(_models.Publicacion).filter(_models.Publicacion.Userid == user.Userid).all()
+    if not publicaciones:
+        raise HTTPException(status_code=404, detail="No publications found")
+    resultado = []
+    for publicacion in publicaciones:
+        archivo = db.query(_models.Snippet).get(publicacion.SnippetId)
+        if not archivo:
+            raise HTTPException(status_code=404, detail="Snippet not found")
+        resultado.append({
+            "id": publicacion.Publicacionid,
+            "titulo": publicacion.titulo,
+            "contenido": publicacion.contenido,
+            "archivo": base64.b64encode(archivo.snippet).decode("utf-8")
+        })
+    return resultado
