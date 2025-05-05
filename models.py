@@ -13,6 +13,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class User(_database.Base):
     __tablename__ = "user"
     Userid = _sql.Column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    role = _sql.Column(_sql.String, default="user")
     username = _sql.Column(_sql.String, index=True, unique=True)
     full_name = _sql.Column(_sql.String, index=True)
     email = _sql.Column(_sql.String, unique=True, index=True)
@@ -27,6 +28,9 @@ class User(_database.Base):
 
     def verify_password(self, password: str):
         return pwd_context.verify(password, self.hashed_password)
+    
+    def is_admin(self):
+        return self.role == "admin"
 
 class Publicacion(_database.Base):
     __tablename__ = "publicacion"
@@ -50,6 +54,7 @@ class Snippet(_database.Base):
     Titulo = _sql.Column(_sql.String, index=True)
     Userid = _sql.Column(UUID(as_uuid=True), _sql.ForeignKey("user.Userid"))
     Lenguaje = _sql.Column(_sql.String, nullable=False, index=True)
+    descripcion = _sql.Column(_sql.String, nullable=True, index=True)
     snippet = _sql.Column(_sql.LargeBinary, index=True)
     fecha_creacion = _sql.Column(_sql.DateTime, default=_dt.datetime.utcnow)
     activo = _sql.Column(_sql.Boolean, default=True)

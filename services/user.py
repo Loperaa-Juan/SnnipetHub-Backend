@@ -81,3 +81,4 @@ async def get_current_user(db: _orm.Session = Depends(get_db), token: str = Depe
         })
 
     return user
+

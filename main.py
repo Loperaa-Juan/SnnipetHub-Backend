@@ -50,12 +50,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: _orm.Sessi
     user = await _userServices.authenticate_user(form_data.username, form_data.password, db)
 
     access_token_expires = timedelta(minutes=30)
-    access_token_jwt = _userServices.create_token({"sub": user.username, "id": str(user.Userid)}, access_token_expires)
+    access_token_jwt = _userServices.create_token({"sub": user.username, "id": str(user.Userid), "role": str(user.role)}, access_token_expires)
 
     return {
         "access_token": access_token_jwt,
         "token_type": "bearer"
     }
+
 
 @app.post("/users")
 async def create_user(
@@ -74,15 +75,16 @@ async def create_user(
 def create_snippet(
     Titulo: str = Form(...),
     Lenguaje: str = Form(...),
+    descripcion: str = Form(...),
     user: _user.User = Depends(_userServices.get_current_user),
     file: UploadFile = File(...), 
     db: _orm.Session = Depends(_databaseServices.get_db)
 ):
-    return  _snippetServices.create_snippet(Titulo=Titulo, Lenguaje=Lenguaje, user=user, db=db, file=file)
+    return  _snippetServices.create_snippet(Titulo=Titulo, Lenguaje=Lenguaje, descripcion=descripcion, user=user, db=db, file=file)
 
 @app.get("/snippets/me",tags=["snippets"], response_model=List[_snippet.Snippet])
 async def get_snippets(user: _user.User = Depends(_userServices.get_current_user), db: _orm.Session = Depends(_databaseServices.get_db)):
-    snippets = await _snippetServices.get_snippets_by_user(user, db)
+    snippets = await _snippetServices.get_snippets_by_user(user=user, db=db)
     return snippets
 
 @app.put("/snippets/{snippet_id}", tags=["snippets"])
@@ -90,12 +92,25 @@ async def update_snippet(
     snippet_id: str,
     Titulo: Optional[str] = Form(None),
     Lenguaje: Optional[str] = Form(None),
+    descripcion: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     user: _user.User = Depends(_userServices.get_current_user),
     db: _orm.Session = Depends(_databaseServices.get_db)
 ):
-    snippet = await _snippetServices.update_snippet(snippet_id, Titulo, Lenguaje, file, user, db=db)
+    snippet = await _snippetServices.update_snippet(snippet_id, Titulo, Lenguaje,descripcion, file, user, db=db)
     return snippet
+
+@app.get("/snippets/{username}", tags=["snippets"])
+async def get_snippets_by_user(
+    username: str,
+    db: _orm.Session = Depends(_databaseServices.get_db),
+    user: _user.User = Depends(_userServices.get_current_user),
+):
+    snippets = await _snippetServices.get_snippets_by_username(username=username, db=db, user=user)
+    if not snippets:
+        raise HTTPException(status_code=404, detail="Snippets not found")
+    return snippets
+
 
 @app.delete("/snippets/{snippet_id}", tags=["snippets"])
 async def delete_snippet(
@@ -106,12 +121,13 @@ async def delete_snippet(
     snippet = await _snippetServices.delete_snippet(snippet_id, user, db=db)
     return snippet
 
+
 # CRUD ENDPOINTS - Publicaciones
 @app.post("/publicaciones", tags=["publicaciones"])
 async def create_publicacion(
-    Titulo: str,
-    Contenido: str,
-    SnippetId: str,
+    Titulo: str = Form(...),
+    Contenido: str = Form(...),
+    SnippetId: str = Form(...),
     user: _user.User = Depends(_userServices.get_current_user),
     db: _orm.Session = Depends(_databaseServices.get_db)
 ):

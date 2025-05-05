@@ -12,6 +12,7 @@ def create_snippet(
     user: _user.User,
     Titulo: str = Form(...),
     Lenguaje: str = Form(...),
+    descripcion: str = Form(...),
     file: UploadFile = File(...),
     db: _orm.Session = Depends(get_db)
 ):
@@ -21,7 +22,8 @@ def create_snippet(
     # Crear un objeto Snippet
     snippet_obj = _models.Snippet(
         Titulo=Titulo,
-        Userid=user.Userid,  
+        Userid=user.Userid,
+        descripcion=descripcion,
         Lenguaje=Lenguaje,
         snippet=file_content
     )
@@ -48,7 +50,7 @@ async def _Snippet_selector(Snippetid: str, user: _user.User, db: _orm.Session):
 
     return Snippet
 
-async def update_snippet(Snippetid: str, Titulo: Optional[str], Lenguaje: Optional[str], file: Optional[UploadFile], user: _user.User, db: _orm.Session):
+async def update_snippet(Snippetid: str, Titulo: Optional[str], Lenguaje: Optional[str], file: Optional[UploadFile], descripcion: Optional[str], user: _user.User, db: _orm.Session):
     snippet_db = await _Snippet_selector(Snippetid, user, db)
 
     if Titulo:
@@ -59,6 +61,9 @@ async def update_snippet(Snippetid: str, Titulo: Optional[str], Lenguaje: Option
 
     if file:
         snippet_db.snippet = file.file.read()
+    
+    if descripcion:
+        snippet_db.descripcion = descripcion
 
     snippet_db.date_last_updated = _dt.datetime.utcnow()
 
@@ -74,3 +79,12 @@ async def delete_snippet(Snippetid: str, user: _user.User, db: _orm.Session):
     db.commit()
 
     return {"detail": "Snippet deleted"}
+
+async def get_snippets_by_username(username: str, db: _orm.Session, user: _user.User):
+    users = db.query(_models.User).filter(_models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    snippets = db.query(_models.Snippet).filter(_models.Snippet.Userid == users.Userid).all()
+    if not snippets:
+        raise HTTPException(status_code=404, detail="Snippets not found")
+    return snippets

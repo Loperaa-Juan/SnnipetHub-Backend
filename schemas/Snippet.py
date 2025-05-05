@@ -11,6 +11,7 @@ class _SnippetBase(_pydantic.BaseModel):
 class SnippetCreate(_SnippetBase):
     Userid: _uuid.UUID
     Lenguaje: str
+    descripcion: str 
 
     model_config = _pydantic.ConfigDict(from_attributes=True)
 
@@ -19,6 +20,7 @@ class LeadCreate(_SnippetBase):
 
 class Snippet(_SnippetBase):
     Snippetid: _uuid.UUID
+    descripcion: str
     fecha_creacion: _dt.datetime
     activo: bool
     actualiza: _dt.datetime
