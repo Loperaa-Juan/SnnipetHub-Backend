@@ -4,7 +4,7 @@ import schemas.user as _user
 import sqlalchemy.orm as _orm
 from fastapi import HTTPException
 
-async def create_comment(Publicacionid: str, user: _user.User, db: _orm.Session, comment: str):
+async def create_comment(Publicacionid: str , user: _user.User, db: _orm.Session, comment: str):
 
     # Verificar si la publicación existe
     publicacion = db.query(_models.Publicacion).filter(_models.Publicacion.Publicacionid == Publicacionid).first()
@@ -35,11 +35,22 @@ async def get_comments_by_user(Userid: str, db: _orm.Session):
         raise HTTPException(status_code=404, detail="No comments found")
     return comments
 
+
 def get_comments_by_publicacion(Publicacionid: str, db: _orm.Session):
-    comments = db.query(_models.Comentario).filter(_models.Comentario.Publicacionid == Publicacionid).all()
-    if not comments:
+    results = (
+        db.query(_models.Comentario.contenido, _models.User.username)
+        .join(_models.User, _models.User.Userid == _models.Comentario.Userid)
+        .filter(_models.Comentario.Publicacionid == Publicacionid)
+        .all()
+    )
+    
+    if not results:
         raise HTTPException(status_code=404, detail="No comments found")
-    return comments
+    
+    return [
+        {"comentario": contenido, "usuario": username}
+        for contenido, username in results
+    ]
 
 def update_comment(ComentarioId: str, Contenido: str, user: _user.User, db: _orm.Session):
     comment_db = db.query(_models.Comentario).filter(_models.Comentario.ComentarioId == ComentarioId).first()

@@ -175,13 +175,14 @@ async def delete_publicacion(
     return await _publicationServices.delete_publicacion(Publicacionid=publicacion_id, user=user, db=db)
 
 # CRUD ENDPOINTS - Comentarios
-@app.post("/create/comentarios", tags=["comments"])
+@app.post("/create/comentario", tags=["comments"])
 async def create_comment(
-    comentario: _comentario.ComentarioCreate,
+    comentario: str = Form(...),
+    Publicacionid: str = Form(...),
     user: _user.User = Depends(_userServices.get_current_user),
     db: _orm.Session = Depends(_databaseServices.get_db)
 ):
-    return await _commentsServices.create_comment(Publicacionid=comentario.Publicacionid, comment=comentario.contenido, user=user, db=db)
+    return await _commentsServices.create_comment(Publicacionid=Publicacionid, comment=comentario, user=user, db=db)
 
 @app.get("/comentarios/user/me", tags=["comments"])
 async def get_comments_me(
