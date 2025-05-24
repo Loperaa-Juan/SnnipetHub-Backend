@@ -1,12 +1,17 @@
 import sqlalchemy.orm as _orm
+
 from fastapi import File, Form, HTTPException
-import base64
-from typing import Optional, List
 from fastapi import UploadFile, Depends
+
+from typing import Optional, List
 import datetime as _dt
+
 import schemas.user as _user
+
 import models as _models
+
 from services.database import get_db
+import services.publication as _publicationServices
 
 def create_snippet(
     user: _user.User,
@@ -73,6 +78,13 @@ async def update_snippet(Snippetid: str, Titulo: Optional[str], Lenguaje: Option
     return snippet_db
 
 async def delete_snippet(Snippetid: str, user: _user.User, db: _orm.Session):
+
+    # determine if the publication is in a publication and delete it
+    publication = db.query( _models.Publicacion ).filter( Snippetid == _models.Publicacion.SnippetId ).first()
+
+    if publication:
+        await _publicationServices.delete_publicacion(db=db, Publicacionid=publication.Publicacionid, user=user)
+
     snippet_db = await _Snippet_selector(Snippetid, user, db)
 
     db.delete(snippet_db)

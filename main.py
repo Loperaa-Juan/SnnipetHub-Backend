@@ -70,6 +70,16 @@ async def create_user(
 
     return user
 
+@app.get("/top_users")
+async def top_users(
+    db: _orm.Session = Depends(_databaseServices.get_db),
+    user: _user.User = Depends(_userServices.get_current_user)
+):
+    top = await _userServices.top_five_users(db=db, user=user)
+
+    return top
+    
+
 # CRUD ENDPOINTS - Snippets
 @app.post("/create/snippets", tags=["snippets"])
 def create_snippet(

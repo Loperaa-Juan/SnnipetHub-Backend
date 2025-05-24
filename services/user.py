@@ -1,17 +1,20 @@
 from datetime import datetime, timedelta
-from jose import jwt, JWTError
-import os
 from typing import Union
+import os
+
+from jose import jwt, JWTError
 from dotenv import load_dotenv
+from passlib.context import CryptContext
+
+import fastapi.security as _security
+from fastapi import HTTPException, Depends
 
 import models as _models
 import schemas.user as _user
-
-import fastapi.security as _security
-import sqlalchemy.orm as _orm
-from passlib.context import CryptContext
-from fastapi import HTTPException, Depends
 from services.database import get_db
+
+import sqlalchemy.orm as _orm
+from sqlalchemy import func, desc
 
 # Crea el contexto para hashing con bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -82,3 +85,29 @@ async def get_current_user(db: _orm.Session = Depends(get_db), token: str = Depe
 
     return user
 
+async def top_five_users( user: _user.User, db: _orm.Session = Depends(get_db),):
+    top_five = db.query(
+        _models.User.Userid,
+        _models.User.username,
+        _models.User.full_name,
+        func.count( _models.Publicacion.Userid )
+    ).join(
+        _models.Publicacion,
+        _models.User.Userid == _models.Publicacion.Userid
+    ).group_by(
+        _models.User.Userid,
+        _models.User.username,
+        _models.User.full_name,
+    ).order_by(
+        desc( func.count( _models.Publicacion.Userid ) )
+    ).limit( 6 )
+
+    top_five = [
+        {
+            "id": r[0],
+            "username": r[1],
+            "full_name": r[2],
+            "numero_publicaciones": r[3]
+        } for r in top_five
+    ]
+    return top_five
