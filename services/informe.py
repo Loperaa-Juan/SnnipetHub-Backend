@@ -51,8 +51,8 @@ def generar_informe(db: _orm.Session, user: _user.User):
     torta = client.responses.create(
         model="gpt-4.1-nano",
         input=f"""
-            Actúa como un analista de datos experto y objetivo. Con los datos que te daré para una gráfica de barras, realiza un análisis conciso y muy profesional.
-            Enfócate en:
+            Actúa como un analista de datos experto y objetivo. A continuación, te proporcionaré datos destinados a una gráfica de torta/pastel (o la descripción de una). 
+            Tu tarea es realizar un análisis conciso y altamente profesional de la información que esta gráfica representaría, enfocándote en:
 
             1.  **Comparaciones Clave:** Diferencias notables de magnitud entre categorías/barras.
             2.  **Valores Dominantes/Mínimos:** Categorías con valores más altos o bajos.
@@ -61,7 +61,8 @@ def generar_informe(db: _orm.Session, user: _user.User):
 
             Presenta los hallazgos en **cuatro párrafos cortos**, de forma estructurada, clara, formal y precisa para ejecutivos. Sin especulaciones sobre los datos. 
             
-            **No utilices formato markdown para el énfasis (por ejemplo, no uses asteriscos para negritas como **texto**); presenta todo el análisis en texto plano.** Evita especulaciones sobre los datos.
+            **No utilices formato markdown para el énfasis (por ejemplo, no uses asteriscos para negritas como **texto**); presenta todo el análisis en texto plano.** Evita especulaciones 
+            sobre los datos.
 
             ESTADISTICAS: {stats}
 
